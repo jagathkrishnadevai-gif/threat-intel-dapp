@@ -1,114 +1,111 @@
-import { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import "./App.css";
+﻿import React, { useState, useEffect } from 'react';
+import { connectWallet, onAccountsChanged, onChainChanged, disconnectWallet } from './utils/Web3';
+import './App.css';
+import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import Features from './components/Features';
+import Dashboard from './components/Dashboard';
 
-const API = "http://localhost:5000";
+const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [walletAddress, setWalletAddress] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
-function App() {
-  const [account, setAccount] = useState(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [threats, setThreats] = useState([]);
-
-  async function connectWallet() {
-    if (!window.ethereum) {
-      alert("MetaMask not installed");
-      return;
-    }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const accounts = await provider.send("eth_requestAccounts", []);
-    setAccount(accounts[0]);
-  }
-
-  async function submitThreat() {
-    try {
-      const res = await fetch(`${API}/api/reports`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          wallet: account,
-          category: title,
-          data: description,
-        }),
-      });
-
-      const result = await res.json();
-      console.log(result);
-
-      setTitle("");
-      setDescription("");
-      fetchThreats();
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function fetchThreats() {
-    try {
-      const res = await fetch(`${API}/api/reports`);
-      const data = await res.json();
-      setThreats(data);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
+  // Handle hash navigation
   useEffect(() => {
-    fetchThreats();
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#dashboard' && walletAddress) {
+        setIsLoggedIn(true);
+      } else if (hash === '#dashboard' && !walletAddress) {
+        // Redirect back to landing if no wallet
+        window.location.hash = '';
+        setIsLoggedIn(false);
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Check on mount
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [walletAddress]);
+
+  // Listen for account and network changes
+  useEffect(() => {
+    // Account changes
+    onAccountsChanged((newAddress) => {
+      if (newAddress) {
+        setWalletAddress(newAddress);
+      } else {
+        handleLogout();
+      }
+    });
+
+    // Network changes
+    onChainChanged(() => {
+      // Reload page on network change for safety
+      window.location.reload();
+    });
   }, []);
 
+  const handleConnectWallet = async () => {
+    setIsConnecting(true);
+    try {
+      const address = await connectWallet();
+      setWalletAddress(address);
+      window.location.hash = 'dashboard';
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      alert('Failed to connect wallet. Please make sure MetaMask is installed and try again.');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleLogout = () => {
+    disconnectWallet();
+    setWalletAddress(null);
+    window.location.hash = '';
+    setIsLoggedIn(false);
+  };
+
   return (
-    <div className="app">
-      {!account ? (
-        <div className="landing">
-          <h1>Decentralized Threat Intelligence</h1>
-          <button onClick={connectWallet}>Connect Wallet</button>
-        </div>
+    <div className="min-h-screen selection:bg-[#DFFF00]/30 selection:text-black">
+      <Navbar 
+        onLogin={handleConnectWallet} 
+        isLoggedIn={isLoggedIn} 
+        address={walletAddress} 
+        setAddress={setWalletAddress} 
+        isConnecting={isConnecting}
+      />
+      
+      {!isLoggedIn ? (
+        <main>
+          <Hero 
+            onLogin={handleConnectWallet} 
+            isConnecting={isConnecting} 
+            address={walletAddress}
+          />
+          <Features />
+          <footer className="py-12 border-t border-gray-900 bg-black text-center text-gray-600 text-[10px] font-bold tracking-[0.2em] uppercase">
+            <div className="max-w-7xl mx-auto px-4">
+              <p>&copy; 2025 SENTINEL_SYS. DECENTRALIZED_DEFENSE_MESH. ALL_SIGNALS_RESERVED.</p>
+              <div className="flex justify-center gap-8 mt-6">
+                <a href="#" className="hover:text-neon transition-colors">[ PROTOCOL ]</a>
+                <a href="#" className="hover:text-neon transition-colors">[ GOVERNANCE ]</a>
+                <a href="#" className="hover:text-neon transition-colors">[ GITHUB ]</a>
+                <a href="#" className="hover:text-neon transition-colors">[ API_DOCS ]</a>
+              </div>
+            </div>
+          </footer>
+        </main>
       ) : (
-        <div className="dashboard">
-          <h1>Threat Intelligence Dashboard</h1>
-          <p>Connected: {account}</p>
-
-          <div className="card">
-            <h3>Submit Threat</h3>
-              <select
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            >
-              <option value="">Select Category</option>
-              <option value="Malware">Malware</option>
-              <option value="Phishing">Phishing</option>
-              </select>
-
-            <textarea
-              placeholder="Threat description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <button onClick={submitThreat}>Submit</button>
-          </div>
-
-          <div className="card">
-            <h3>Threat Feed</h3>
-            {threats.length === 0 ? (
-              <p>No threats yet.</p>
-            ) : (
-              threats.map((t) => (
-                <div key={t._id} className="threat">
-                  <p><b>Category:</b> {t.category}</p>
-                  <p><b>Wallet:</b> {t.wallet}</p>
-                  <p><b>Hash:</b> {t.hash}</p>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <Dashboard onLogout={handleLogout} />
       )}
     </div>
   );
-}
+};
 
 export default App;
