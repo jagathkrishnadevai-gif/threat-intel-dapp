@@ -1,166 +1,76 @@
-﻿import React, { useState, useEffect } from 'react';
-import { disconnectWallet, onAccountsChanged, getTokenBalance } from '../utils/Web3';
+﻿import React, { useState } from 'react';
 
-const Navbar = ({ onLogin, isLoggedIn, address, setAddress, isConnecting }) => {
-  const [tokenBalance, setTokenBalance] = useState('0');
-  const [showDropdown, setShowDropdown] = useState(false);
+const Navbar = ({ onLogin, isLoggedIn, address, isConnecting }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleDisconnect = () => {
-    disconnectWallet();
-    setAddress(null);
-    setTokenBalance('0');
-    setShowDropdown(false);
-  };
-
-  useEffect(() => {
-    onAccountsChanged((newAddress) => {
-      if (newAddress) {
-        setAddress(newAddress);
-      } else {
-        disconnectWallet();
-        setAddress(null);
-        setTokenBalance('0');
-        setShowDropdown(false);
-      }
-    });
-  }, [setAddress]);
-
-  useEffect(() => {
-    if (!address) return;
-
-    let active = true;
-    const timer = setTimeout(() => {
-      (async () => {
-        try {
-          const balance = await getTokenBalance(address);
-          if (!active) return;
-          setTokenBalance(parseFloat(balance).toFixed(2));
-        } catch (error) {
-          console.error('Error loading token balance:', error);
-        }
-      })();
-    }, 0);
-
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [address]);
-
-  const handleConnect = async () => {
-    try {
-      await onLogin();
-    } catch (error) {
-      console.error('Connection error:', error);
-      alert('Failed to connect wallet. Please make sure MetaMask is installed and unlocked.');
-    }
-  };
-
-  const formatAddress = (addr) => {
-    if (!addr) return '';
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
-
-  const copyAddress = () => {
-    navigator.clipboard.writeText(address);
-    alert('Address copied to clipboard!');
-  };
+  if (isLoggedIn) return null; // Hide navbar in dashboard
 
   return (
-    <nav className="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b border-neon/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <div className="text-neon font-bold text-xl tracking-wider">
-              <span className="glitch" data-text="SENTINEL_SYS">
-                SENTINEL_SYS
-              </span>
-            </div>
+    <nav className="fixed top-0 left-0 right-0 z-[100] px-6 md:px-12 py-6 md:py-8 pointer-events-none">
+      <div className="max-w-7xl mx-auto flex justify-between items-center pointer-events-auto bg-black/20 backdrop-blur-md border border-white/5 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none md:border-none">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 border border-neon flex items-center justify-center relative">
+            <div className="w-1.5 h-1.5 bg-white"></div>
+          </div>
+          <div className="text-white font-black text-lg tracking-tighter">SENTINEL_SYS</div>
+        </div>
+
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="hidden md:flex items-center gap-8 mr-4">
+            <a href="#features" className="text-[9px] font-black tracking-widest text-gray-500 hover:text-neon transition-all uppercase">Network</a>
+            <a href="#about" className="text-[9px] font-black tracking-widest text-gray-500 hover:text-neon transition-all uppercase">Ledger</a>
+            <a href="#docs" className="text-[9px] font-black tracking-widest text-gray-500 hover:text-neon transition-all uppercase">Nodes</a>
           </div>
 
-          <div className="flex items-center gap-6">
-            {!isLoggedIn && (
-              <div className="hidden md:flex gap-6 text-sm font-bold tracking-wider">
-                <a href="#features" className="text-gray-400 hover:text-neon transition-colors">
-                  [ FEATURES ]
-                </a>
-                <a href="#about" className="text-gray-400 hover:text-neon transition-colors">
-                  [ PROTOCOL ]
-                </a>
-                <a href="#docs" className="text-gray-400 hover:text-neon transition-colors">
-                  [ DOCS ]
-                </a>
-              </div>
-            )}
-
-            {!address ? (
-              <button
-                onClick={handleConnect}
-                disabled={isConnecting}
-                className="relative px-6 py-2 bg-black border-2 border-neon text-neon font-bold text-sm tracking-wider hover:bg-neon hover:text-black transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="corner-tl"></div>
-                <div className="corner-tr"></div>
-                <div className="corner-bl"></div>
-                <div className="corner-br"></div>
-                {isConnecting ? '[ CONNECTING... ]' : '[ CONNECT_WALLET ]'}
-              </button>
+          <button
+            onClick={onLogin}
+            disabled={isConnecting}
+            className="hidden md:flex bg-neon text-black px-6 py-2 font-black text-[10px] tracking-widest uppercase border border-neon hover:bg-black hover:text-neon transition-all items-center gap-3 disabled:opacity-50"
+          >
+            {isConnecting ? (
+              <>
+                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                CONNECTING...
+              </>
+            ) : address ? (
+              `[ ${address.slice(0, 6)}...${address.slice(-4)} ]`
             ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="relative px-6 py-2 bg-black border-2 border-neon text-neon font-bold text-sm tracking-wider hover:bg-neon/10 transition-all duration-300"
-                >
-                  <div className="corner-tl"></div>
-                  <div className="corner-tr"></div>
-                  <div className="corner-bl"></div>
-                  <div className="corner-br"></div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs">💰 {tokenBalance} RWT</span>
-                    <span className="text-white">|</span>
-                    <span>{formatAddress(address)}</span>
-                  </div>
-                </button>
-
-                {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-64 bg-black border-2 border-neon shadow-lg shadow-neon/20">
-                    <div className="p-4 space-y-3">
-                      <div className="text-xs text-gray-400 uppercase tracking-wider">
-                        Connected Wallet
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-mono text-neon">
-                          {formatAddress(address)}
-                        </span>
-                        <button
-                          onClick={copyAddress}
-                          className="text-xs text-gray-400 hover:text-neon transition-colors"
-                        >
-                          [ COPY ]
-                        </button>
-                      </div>
-                      <div className="border-t border-gray-800 pt-3">
-                        <div className="text-xs text-gray-400 uppercase tracking-wider mb-2">
-                          Token Balance
-                        </div>
-                        <div className="text-lg font-bold text-neon">
-                          {tokenBalance} RWT
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleDisconnect}
-                        className="w-full py-2 bg-red-900/20 border border-red-500 text-red-500 text-sm font-bold hover:bg-red-900/40 transition-colors"
-                      >
-                        [ DISCONNECT ]
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              'CONNECT_WALLET'
             )}
-          </div>
+          </button>
+
+          {/* Mobile Toggle */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-neon p-2"
+          >
+            {isMobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 bg-black/95 z-[90] p-12 flex flex-col justify-center gap-12 pointer-events-auto animate-in fade-in duration-300">
+          <div className="flex flex-col gap-8 text-center">
+            <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-widest text-white hover:text-neon uppercase">Network</a>
+            <a href="#about" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-widest text-white hover:text-neon uppercase">Ledger</a>
+            <a href="#docs" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-widest text-white hover:text-neon uppercase">Nodes</a>
+          </div>
+
+          <button
+            onClick={() => { onLogin(); setIsMobileMenuOpen(false); }}
+            disabled={isConnecting}
+            className="bg-neon text-black px-8 py-4 font-black text-sm tracking-widest uppercase border border-neon hover:bg-black hover:text-neon transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {isConnecting ? 'CONNECTING...' : address ? `[ ${address.slice(0, 6)}... ]` : 'CONNECT_WALLET'}
+          </button>
+        </div>
+      )}
     </nav>
   );
 };

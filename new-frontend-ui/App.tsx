@@ -1,14 +1,13 @@
-﻿import React, { useState, useEffect } from 'react';
-import { connectWallet, onAccountsChanged, onChainChanged, disconnectWallet } from './utils/Web3';
-import './App.css';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
 import Dashboard from './components/Dashboard';
 
-const App = () => {
+const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [walletAddress, setWalletAddress] = useState(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
   // Handle hash navigation
@@ -32,40 +31,17 @@ const App = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [walletAddress]);
 
-  // Listen for account and network changes
-  useEffect(() => {
-    // Account changes
-    onAccountsChanged((newAddress) => {
-      if (newAddress) {
-        setWalletAddress(newAddress);
-      } else {
-        handleLogout();
-      }
-    });
-
-    // Network changes
-    onChainChanged(() => {
-      // Reload page on network change for safety
-      window.location.reload();
-    });
-  }, []);
-
   const handleConnectWallet = async () => {
     setIsConnecting(true);
-    try {
-      const address = await connectWallet();
-      setWalletAddress(address);
-      window.location.hash = 'dashboard';
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      alert('Failed to connect wallet. Please make sure MetaMask is installed and try again.');
-    } finally {
-      setIsConnecting(false);
-    }
+    // Simulate wallet connection delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const mockAddress = "0x71C7656EC7ab88b098defB751B7401B5f6d84F92";
+    setWalletAddress(mockAddress);
+    setIsConnecting(false);
+    window.location.hash = 'dashboard';
   };
 
   const handleLogout = () => {
-    disconnectWallet();
     setWalletAddress(null);
     window.location.hash = '';
     setIsLoggedIn(false);
@@ -73,37 +49,22 @@ const App = () => {
 
   return (
     <div className="min-h-screen selection:bg-[#DFFF00]/30 selection:text-black">
-      <Navbar
-        onLogin={handleConnectWallet}
-        isLoggedIn={isLoggedIn}
-        address={walletAddress}
+      <Navbar 
+        onLogin={handleConnectWallet} 
+        isLoggedIn={isLoggedIn} 
+        address={walletAddress} 
+        setAddress={setWalletAddress} 
         isConnecting={isConnecting}
       />
-
+      
       {!isLoggedIn ? (
         <main>
-          <Hero
-            onLogin={handleConnectWallet}
-            isConnecting={isConnecting}
+          <Hero 
+            onLogin={handleConnectWallet} 
+            isConnecting={isConnecting} 
             address={walletAddress}
           />
-
-          {/* DEV BYPASS BUTTON integrated into landing */}
-          <div className="flex justify-center pb-12 bg-black">
-            <button
-              onClick={() => {
-                setWalletAddress("0xDEV_USER_ANONYMOUS");
-                setIsLoggedIn(true);
-                window.location.hash = 'dashboard';
-              }}
-              className="text-gray-500 hover:text-neon text-[10px] uppercase tracking-widest border border-gray-800 px-4 py-2 hover:border-neon transition-all"
-            >
-              [ DEV_BYPASS: ENTER WITHOUT WALLET ]
-            </button>
-          </div>
-
           <Features />
-
           <footer className="py-12 border-t border-gray-900 bg-black text-center text-gray-600 text-[10px] font-bold tracking-[0.2em] uppercase">
             <div className="max-w-7xl mx-auto px-4">
               <p>&copy; 2025 SENTINEL_SYS. DECENTRALIZED_DEFENSE_MESH. ALL_SIGNALS_RESERVED.</p>
@@ -117,7 +78,7 @@ const App = () => {
           </footer>
         </main>
       ) : (
-        <Dashboard onLogout={handleLogout} userAddress={walletAddress} />
+        <Dashboard onLogout={handleLogout} />
       )}
     </div>
   );

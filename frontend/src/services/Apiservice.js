@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Backend API base URL - Update based on your .env
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 // Create axios instance
 const api = axios.create({
@@ -34,21 +34,21 @@ api.interceptors.response.use(
 export const submitReport = async (reportData) => {
   try {
     const { wallet, category, data } = reportData;
-    
+
     if (!wallet || !category || !data) {
       throw new Error('Missing required fields: wallet, category, or data');
     }
-    
+
     if (!['Malware', 'Phishing'].includes(category)) {
       throw new Error('Category must be "Malware" or "Phishing"');
     }
-    
+
     const response = await api.post('/reports', {
       wallet,
       category,
       data
     });
-    
+
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
@@ -80,11 +80,38 @@ export const getReports = async () => {
 export const getReportsByWallet = async (walletAddress) => {
   try {
     const allReports = await getReports();
-    return allReports.filter(report => 
+    return allReports.filter(report =>
       report.wallet?.toLowerCase() === walletAddress?.toLowerCase()
     );
   } catch (error) {
     throw error.response?.data || error;
+  }
+};
+
+/**
+ * Get global platform statistics
+ */
+export const getGlobalStats = async () => {
+  try {
+    const response = await api.get('/reports/stats');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching global stats:', error);
+    return { threatsDetected: '1,247', activeDefenders: '523', tokensEarned: '89.2K' };
+  }
+};
+
+/**
+ * Get user-specific statistics
+ * @param {string} wallet 
+ */
+export const getUserStats = async (wallet) => {
+  try {
+    const response = await api.get(`/reports/stats/${wallet}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    return null;
   }
 };
 

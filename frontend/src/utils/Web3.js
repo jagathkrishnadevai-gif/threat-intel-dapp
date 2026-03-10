@@ -121,12 +121,14 @@ export const getAddress = async () => {
 };
 
 export const getBalance = async (address) => {
+  if (address === "0xDEV_USER_ANONYMOUS") return "100.0000";
   if (!provider) await initProvider();
   const balance = await provider.getBalance(address);
   return formatUnits(balance, 18);
 };
 
 export const getTokenBalance = async (address) => {
+  if (address === "0xDEV_USER_ANONYMOUS") return "5000.0000";
   if (!rewardTokenContract) await initProvider();
   const balance = await rewardTokenContract.balanceOf(address);
   return formatUnits(balance, 18);

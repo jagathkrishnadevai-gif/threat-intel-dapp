@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 
 const FEATURES = [
@@ -30,7 +31,7 @@ const FEATURES = [
   },
   {
     title: 'TOKENIZED_INCENTIVES',
-    description: 'Earn native $RWT assets for every verified report, data contribution, or peer validation performed.',
+    description: 'Earn native $STN assets for every verified report, data contribution, or peer validation performed.',
     icon: (
       <svg className="w-6 h-6 text-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -39,8 +40,8 @@ const FEATURES = [
   }
 ];
 
-const Features = () => {
-  const scrollRef = useRef(null);
+const Features: React.FC = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -63,45 +64,45 @@ const Features = () => {
   }, []);
 
   return (
-    <section className="py-12 md:py-24 bg-[#050505] border-t border-gray-900 font-mono relative overflow-hidden">
+    <section className="py-24 bg-[#050505] border-t border-gray-900 font-mono relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon/50 to-transparent"></div>
-
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-20 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 relative z-10">
           <div className="max-w-xl">
-            <div className="text-neon text-[8px] md:text-[10px] font-black tracking-[0.4em] uppercase mb-4 animate-pulse">Tactical_Capabilities</div>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase mb-6 leading-tight">RESILIENT_ECOSYSTEM</h2>
-            <p className="text-gray-500 text-[10px] font-bold leading-relaxed tracking-widest uppercase border-l border-neon/30 pl-4 md:border-none md:pl-0">Decoupling identity from security validation.</p>
+             <div className="text-neon text-[10px] font-black tracking-[0.4em] uppercase mb-4 animate-pulse">Tactical_Capabilities</div>
+             <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase mb-6 leading-tight">RESILIENT_SECURITY_ECOSYSTEM</h2>
+             <p className="text-gray-500 text-xs font-bold leading-relaxed tracking-widest uppercase">Decoupling identity from security validation.</p>
           </div>
           <div className="hidden md:block">
-            <div className="w-48 h-1 bg-neon shadow-[0_0_20px_#DFFF00] animate-width-cycle"></div>
+             <div className="w-48 h-1 bg-neon shadow-[0_0_20px_#DFFF00] animate-width-cycle"></div>
           </div>
         </div>
-
-        <div ref={scrollRef} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 relative z-10">
+        
+        <div ref={scrollRef} className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
           {FEATURES.map((feature, idx) => (
-            <div
-              key={idx}
-              className="feature-card relative group p-6 md:p-10 bg-[#080808] border border-gray-900 transition-all duration-700 overflow-hidden transform-gpu"
+            <div 
+              key={idx} 
+              className="feature-card relative group p-10 bg-[#080808] border border-gray-900 transition-all duration-700 overflow-hidden transform-gpu"
               style={{ transitionDelay: `${idx * 100}ms` }}
             >
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-30 transition-opacity">
-                <div className="text-[60px] md:text-[80px] font-black text-white leading-none -rotate-12 translate-x-4">{idx + 1}</div>
+                 <div className="text-[80px] font-black text-white leading-none -rotate-12 translate-x-4">{idx + 1}</div>
               </div>
-
-              <div className="w-12 h-12 md:w-14 md:h-14 border border-gray-800 bg-black flex items-center justify-center mb-6 md:mb-8 group-hover:border-neon group-hover:bg-neon/10 transition-all group-hover:scale-110 duration-500 relative shrink-0">
+              
+              <div className="w-14 h-14 border border-gray-800 bg-black flex items-center justify-center mb-8 group-hover:border-neon group-hover:bg-neon/10 transition-all group-hover:scale-110 duration-500 relative">
                 <div className="absolute inset-0 border border-neon/30 scale-125 opacity-0 group-hover:opacity-100 transition-all duration-700 animate-spin-slow"></div>
                 {feature.icon}
               </div>
-
-              <h3 className="text-[10px] md:text-sm font-black text-white mb-2 md:mb-4 tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-neon transition-colors">
+              
+              <h3 className="text-sm font-black text-white mb-4 tracking-[0.3em] uppercase group-hover:text-neon transition-colors">
                 {feature.title}
               </h3>
-
-              <p className="text-[9px] md:text-[10px] text-gray-500 font-bold leading-relaxed tracking-widest uppercase">
+              
+              <p className="text-[10px] text-gray-500 font-bold leading-relaxed tracking-widest uppercase">
                 {feature.description}
               </p>
-
+              
               <div className="absolute bottom-0 left-0 w-full h-1 bg-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
             </div>
           ))}
